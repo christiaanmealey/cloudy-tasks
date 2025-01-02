@@ -33,7 +33,7 @@ function Home() {
 
   useEffect(() => {
     if (!auth.isAuthenticated) {
-      //navigate("/login");
+      navigate("/login");
     }
   }, [isLoading, isAuthenticated]);
 
