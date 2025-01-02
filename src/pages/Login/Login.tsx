@@ -13,7 +13,7 @@ function Login() {
   }, [auth.isAuthenticated]);
 
   const signOutRedirect = () => {
-    const clientId = "4k9oe34nme624b04qc6m8v5meb";
+    const clientId = "3qad7vsn3q85dn01f59acdhnqb";
     const logoutUri = "<logout uri>";
     const cognitoDomain =
       "https://us-east-25lowiycn2.auth.us-east-2.amazoncognito.com";
