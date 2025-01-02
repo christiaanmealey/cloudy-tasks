@@ -11,7 +11,8 @@ frontend:
           - npm run build
     artifacts:
       baseDirectory: dist
-      files: - '**/*'
+      files:
+        - "**/*"
     cache:
       paths:
         - node_modules/**/*
