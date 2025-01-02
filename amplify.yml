@@ -7,7 +7,7 @@ frontend:
         - nvm use 23
     build:
       commands:
-        - npm intall
+        - npm install
         - npm run build
   artifacts:
     # IMPORTANT - Please verify your build output directory
