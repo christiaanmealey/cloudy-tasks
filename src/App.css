@@ -1,0 +1,274 @@
+* {
+  box-sizing: border-box;
+}
+
+
+body {
+  overflow: hidden;
+  background: linear-gradient(to top, #e0e0e0, #fff);
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;  
+  text-align: left;
+  padding: .5rem 1rem;
+  background-color: #fff;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, .25);
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+h1 {
+  font-size: xx-large;
+  margin: 0;
+  padding: 0;
+  color: #000;
+  font-weight: bolder;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.page-content {
+  min-width: 980px;
+  display: flex;
+  height: calc(100vh - 52px);
+  margin-top: 3rem;
+  padding: 0 1rem;
+  flex-direction: column;
+  padding-bottom: 6rem; 
+}
+
+.cards-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.page-content .bottom-section button {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background-color: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  transform: scale(1.5);
+}
+
+.page-content .bottom-section button span {
+  font-size: xx-large;
+  margin-top: -5px;
+}
+
+.search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  height: 40px;
+  margin: 1rem 0;
+  gap: 10px;
+}
+
+.search input {
+  padding:.5rem;
+}
+
+.cards-grid {
+  display: flex;
+  overflow-y: auto;
+  width: 1120px;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: start;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, .05);
+}
+
+.card {
+  padding: .75rem .75em;
+  background-color: #fff;
+  text-align: left;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid#ddd;
+  position: relative;
+}
+
+p {
+  margin: 0;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+p.status {
+  background-color: black;
+  color: white;
+  padding: .25rem .5rem;
+  font-size: .75rem;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+p.title {
+  font-weight: bold;
+  max-width: 80%;
+  font-size: 1.1rem;
+  color: #111;
+}
+
+p.description {
+  font-size: .85rem;
+  color: #000;
+  margin: 1.5rem 0 1rem;
+  min-height: 8rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2255fe;
+  color: #fff;
+  position: absolute;
+  padding: .5rem 0;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+}
+
+.footer .category p {
+  padding-left: 1rem;
+}
+
+.footer .tags {
+  display: flex;
+  font-weight: 700;
+  font-size: .75rem;
+  color:white;
+  padding-right: 1rem;
+}
+
+.footer .tags p {
+  margin-right: .25rem;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/*  --- FORM ---  */
+.add-task {
+  text-align: left;
+  display: flex;
+  flex-basis: auto;
+  flex-direction: column;
+}
+
+.add-task section {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  margin: .25rem auto;
+}
+
+.add-task section.w-full {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  margin: .5rem auto;
+  justify-content: space-between;
+}
+
+.justify-start {
+  justify-content: start;
+}
+
+.add-task section div {
+  max-width: 50%;
+  flex-grow: 1;
+}
+
+.add-task section input[type="text"], .add-task section select, .add-task section textarea {
+  padding: .5rem;
+  max-width: 100%;
+  min-width: 95%;
+}
+
+.add-task section label {
+  display: flex;
+  margin: .5rem 0 .5rem;
+  width: 100%;
+}
+
+.add-task section ul {
+  display: flex;
+  width: 100%;
+  list-style: none;
+  margin: 1rem 0 0 0;
+  padding: 0;
+}
+
+.add-task section ul li {
+  margin: 0 .5rem 0 0;
+}
+
+.add-task section ul li::after {
+  content: ', ';
+}
+
+.add-task section ul li:last-child::after {
+  content: '';
+}
+
+.add-task section.cta {
+  display: flex;
+  justify-content: end;
+  align-content: flex-end;
+  margin: 0;
+}
+
+section.cta button:first-child {
+  margin-right: 1rem;
+}
+
+.add-task section.cta button {
+  background-color: black;
+  color: white;
+}
