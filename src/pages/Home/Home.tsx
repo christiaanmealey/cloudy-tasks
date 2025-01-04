@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "react-oidc-context";
-//import { useNavigate } from "react-router-dom";
-import {
-  CognitoIdentityProviderClient,
-  InitiateAuthCommand,
-  InitiateAuthCommandInput,
-  InitiateAuthCommandOutput,
-  AuthFlowType,
-} from "@aws-sdk/client-cognito-identity-provider";
+
 import { v4 as uuidv4 } from "uuid";
 
 function Home() {
@@ -30,38 +23,9 @@ function Home() {
   const refTaskStatus = useRef<HTMLSelectElement | null>(null);
 
   const auth = useAuth();
-  //const navigate = useNavigate();
 
-  const region = "us-east-2";
-  const clientId = "3qad7vsn3q85dn01f59acdhnqb";
-  const username = "christiaan.mealey@gmail.com";
-  const password = "__@v1dU$3r!?__";
-
-  const cognitoClient = new CognitoIdentityProviderClient({ region });
-
-  const getToken = async (): Promise<void> => {
-    try {
-      const params: InitiateAuthCommandInput = {
-        AuthFlow: "USER_PASSWORD_AUTH" as AuthFlowType,
-        ClientId: clientId,
-        AuthParameters: {
-          USERNAME: username,
-          PASSWORD: password,
-        },
-      };
-      const command = new InitiateAuthCommand(params);
-      const response: InitiateAuthCommandOutput = await cognitoClient.send(
-        command
-      );
-      const token = response.AuthenticationResult?.AccessToken;
-      setAccessToken(token);
-    } catch (error) {
-      console.error(error);
-    }
-  };
   useEffect(() => {
     if (accessToken === "" || accessToken === "undefined") {
-      getToken();
     } else {
       fetchTasks();
     }
@@ -77,12 +41,15 @@ function Home() {
   useEffect(() => {
     if (!auth.isAuthenticated) {
       //navigate("/login");
+    } else if (auth.user?.access_token !== "undefined") {
+      setAccessToken(auth.user?.access_token);
+      fetchTasks();
     }
   }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     if (!tasks.length) {
-      fetchTasks();
+      //fetchTasks();
     } else {
       setFilteredTasks(tasks);
     }

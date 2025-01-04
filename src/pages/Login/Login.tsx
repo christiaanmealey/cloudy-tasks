@@ -1,22 +1,13 @@
-import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
-import { useNavigate } from "react-router-dom";
 
 function Login() {
   const auth = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      navigate("/");
-    }
-  }, [auth.isAuthenticated]);
 
   const signOutRedirect = () => {
-    const clientId = "3qad7vsn3q85dn01f59acdhnqb";
+    const clientId = "7nnlrhka9rd7tjbgl91tn57mts";
     const logoutUri = "<logout uri>";
     const cognitoDomain =
-      "https://us-east-25lowiycn2.auth.us-east-2.amazoncognito.com";
+      "https://us-east-2eizuuhmmt.auth.us-east-2.amazoncognito.com";
     window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
       logoutUri
     )}`;
