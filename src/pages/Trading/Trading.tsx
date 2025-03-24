@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import useUserSettings from "../../hooks/useUserSettings";
 import axios from "axios";
@@ -13,7 +13,7 @@ const TradingBot = () => {
   const [log, setLog] = useState<string[]>([]);
   const auth = useAuth();
   const email = auth?.user?.profile.email;
-  const { settings, loading, error } = useUserSettings(email);
+  const { settings } = useUserSettings(email);
 
   const [minPrice, setMinPrice] = useState(30000);
   const [maxPrice, setMaxPrice] = useState(35000);
@@ -25,7 +25,7 @@ const TradingBot = () => {
     if (settings) {
       setMaxPrice(settings.maxPrice);
       setMinPrice(settings.minPrice);
-      setTradeAmount(settings.tradeAmount);
+      setTradeAmount(settings.tradeAmunt);
       setStopLossPercent(settings.stopLoss);
       setTrailingStopPercent(settings.trailingStop);
     }

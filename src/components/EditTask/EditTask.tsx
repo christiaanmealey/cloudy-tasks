@@ -1,19 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-
+import Task from "../../types/Task";
 import "./EditTask.css";
-
-type Task = {
-  userId: string;
-  taskId: string;
-  title: string | undefined;
-  category: string;
-  description: string | undefined;
-  dueDate: string | undefined;
-  status: string;
-  completed: boolean;
-  tags: string[];
-};
 
 type EditTaskProps = {
   task: Task;
@@ -34,7 +22,7 @@ function EditTask({ task, onAddTask, onClose, onDelete }: EditTaskProps) {
     completed: false,
     tags: [],
   });
-  const [taskCompleted, setTaskCompleted] = useState<boolean | null>(null);
+  const [taskCompleted, setTaskCompleted] = useState<boolean>(false);
   const [tags, setTags] = useState<string[]>([]);
   const [isNewTask, setIsNewTask] = useState<boolean>(true);
   const [hoverItem, setHoverItem] = useState<number | null>(null);
@@ -97,7 +85,7 @@ function EditTask({ task, onAddTask, onClose, onDelete }: EditTaskProps) {
 
   const reset = () => {
     setTags([]);
-    setTaskCompleted(null);
+    setTaskCompleted(false);
     if (refTaskTitle.current) {
       refTaskTitle.current.value = "";
     }

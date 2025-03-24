@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GetCommand, GetCommandOutput, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import docClient from '../utils/awsConfig';
 
 const TABLE_NAME = 'Settings';
