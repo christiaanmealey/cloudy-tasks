@@ -2,18 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 import EditTask from "../../components/EditTask/EditTask";
-
-type Task = {
-  userId: string;
-  taskId: string;
-  title: string | undefined;
-  category: string;
-  description: string | undefined;
-  dueDate: string | undefined;
-  status: string;
-  completed: boolean;
-  tags: string[];
-};
+import Task from "../../types/Task";
 
 function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
