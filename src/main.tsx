@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+
 import { AuthProvider } from "react-oidc-context";
 
 const redirectUri = window.location.hostname.includes("localhost")

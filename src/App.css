@@ -102,6 +102,21 @@ h1 {
   gap: 10px;
 }
 
+.search .viewType {
+  display: flex;
+  justify-content: start;
+}
+
+.search .viewType p {
+  cursor: pointer;
+  margin: 0 .5rem;
+}
+
+.search .viewType p.active {
+  color:#2255fe;
+  text-decoration: underline;
+}
+
 .search input {
   padding:.5rem;
 }
@@ -113,7 +128,33 @@ h1 {
   flex-wrap: wrap;
   gap: 30px;
   justify-content: start;
-  box-shadow: 0px 0px 5px rgba(0, 0, 0, .05);
+}
+
+.cards-grid.list-view {
+  justify-content: space-around;
+}
+
+.cards-grid ul {
+  list-style: none;
+  margin: 0;
+  background-color: #eee;
+  padding: 0 .25rem;
+}
+
+.cards-grid ul li .card {
+  width: 300px;
+}
+
+.cards-grid li {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.cards-grid li.stage-title {
+  font-size: large;
+  padding-left: .75rem;
+  font-weight: bold;
+  margin-bottom: 0;
 }
 
 .card {
@@ -125,6 +166,7 @@ h1 {
   flex-direction: column;
   border: 1px solid#ddd;
   position: relative;
+  cursor: pointer;
 }
 
 p {
@@ -150,6 +192,13 @@ p.title {
   font-weight: bold;
   max-width: 80%;
   font-size: 1.1rem;
+  color: #111;
+}
+
+.list-view p.title {
+  font-weight: bold;
+  max-width: 80%;
+  font-size: .9rem;
   color: #111;
 }
 
@@ -189,19 +238,36 @@ p.description {
   margin-right: .25rem;
 }
 
+.tag-list li {
+  display: flex;
+  align-items: center;
+}
+
+.delete-tag {
+  background-color: rgb(255, 25, 20);
+  color: white;
+  border-radius: 5px;
+  font-size: .85rem;
+  padding: .25rem .25rem .25rem;
+  margin-left: .5rem;
+  line-height: .85rem;
+  cursor: pointer;
+  display: flex;
+}
+
 .read-the-docs {
   color: #888;
 }
 
 /*  --- FORM ---  */
-.add-task {
+/* .add-task {
   text-align: left;
   display: flex;
   flex-basis: auto;
   flex-direction: column;
-}
+} */
 
-.add-task section {
+/* .add-task section {
   display: flex;
   width: 100%;
   flex-wrap: wrap;
@@ -214,16 +280,16 @@ p.description {
   flex-wrap: wrap;
   margin: .5rem auto;
   justify-content: space-between;
-}
+} */
 
 .justify-start {
   justify-content: start;
 }
 
-.add-task section div {
+/* .add-task section div {
   max-width: 50%;
   flex-grow: 1;
-}
+} */
 
 .add-task section input[type="text"], .add-task section select, .add-task section textarea {
   padding: .5rem;

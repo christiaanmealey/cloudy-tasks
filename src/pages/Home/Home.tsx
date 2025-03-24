@@ -1,26 +1,44 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
+import EditTask from "../../components/EditTask/EditTask";
 
-import { v4 as uuidv4 } from "uuid";
+type Task = {
+  userId: string;
+  taskId: string;
+  title: string | undefined;
+  category: string;
+  description: string | undefined;
+  dueDate: string | undefined;
+  status: string;
+  completed: boolean;
+  tags: string[];
+};
 
 function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [currentView, setCurrentView] = useState<string>("list");
+  const [currentTask, setCurrentTask] = useState<Task>({
+    userId: "",
+    taskId: "",
+    title: "",
+    category: "",
+    description: "",
+    dueDate: new Date().toISOString(),
+    status: "",
+    completed: false,
+    tags: [],
+  });
   const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
+  const [stageTasks, setStageTasks] = useState<any>([]);
   const [viewAddTask, setViewAddTask] = useState<boolean>(false);
-  const [taskCompleted, setTaskCompleted] = useState<boolean>(true);
-  const [tags, setTags] = useState<string[]>([]);
   const [searchText, setSearchText] = useState<string>("");
   const [filterText, setFilterText] = useState<string>("");
   const [accessToken, setAccessToken] = useState<string | undefined>("");
+  const [stages, setStages] = useState<string[]>([]);
   let retryCount = 5;
-
-  const refTaskTitle = useRef<HTMLInputElement>(null);
-  const refTaskCategory = useRef<HTMLSelectElement | null>(null);
-  const refTaskDescription = useRef<HTMLTextAreaElement>(null);
-  const refTaskDueDate = useRef<HTMLInputElement>(null);
-  const refTaskStatus = useRef<HTMLSelectElement | null>(null);
 
   const auth = useAuth();
 
@@ -51,6 +69,15 @@ function Home() {
     if (!tasks.length) {
       //fetchTasks();
     } else {
+      const availableStages = tasks.map((task) => task.status);
+      const groupedTasks = tasks.reduce((acc: any, task) => {
+        acc[task.status] = acc[task.status] || [];
+        acc[task.status].push(task);
+        return acc;
+      }, {});
+      console.log(groupedTasks);
+      setStages([...new Set(availableStages)]);
+      setStageTasks(groupedTasks);
       setFilteredTasks(tasks);
     }
   }, [tasks]);
@@ -59,7 +86,7 @@ function Home() {
     if (!tasks.length) return;
     setFilteredTasks(
       tasks.filter((task) =>
-        task.title.toLowerCase().includes(searchText.toLowerCase())
+        task.title?.toLowerCase().includes(searchText.toLowerCase())
       )
     );
   }, [searchText]);
@@ -68,7 +95,7 @@ function Home() {
     if (!tasks.length) return;
     setFilteredTasks(
       tasks.filter((task) =>
-        task.tags.join(" ").toLowerCase().includes(filterText.toLowerCase())
+        task.tags?.join(" ").toLowerCase().includes(filterText.toLowerCase())
       )
     );
   }, [filterText]);
@@ -97,86 +124,135 @@ function Home() {
     }
   };
 
-  const addTask = async (newTask: any) => {
+  const addTask = async (taskItem: any, isNewTask: boolean) => {
     try {
       const token = auth.user?.access_token;
+      const reqMethod = isNewTask ? "POST" : "PUT";
+      const params = isNewTask
+        ? ""
+        : `?userId=${taskItem.userId}&taskId=${taskItem.taskId}`;
       const response = await fetch(
-        "https://oksbm9wyzc.execute-api.us-east-2.amazonaws.com/tasks",
+        `https://oksbm9wyzc.execute-api.us-east-2.amazonaws.com/tasks${params}`,
         {
-          method: "POST",
+          method: reqMethod,
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(newTask),
+          body: JSON.stringify(taskItem),
         }
       );
       const result = await response.json();
-      setTasks((prevTasks) => [...prevTasks, result.item]);
-      resetForm();
+      if (isNewTask) {
+        setTasks((prevTasks) => [result.item, ...prevTasks]);
+      } else {
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.taskId === result.item.taskId ? result.item : task
+          )
+        );
+      }
+      //resetForm();
       setViewAddTask(false);
     } catch (error) {
       console.error("Adding task failed");
     }
   };
 
-  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.value);
-    setTaskCompleted(event.target.value === "true");
+  const deleteTask = async (taskId: string, userId: string) => {
+    try {
+      const response = await fetch(
+        `https://oksbm9wyzc.execute-api.us-east-2.amazonaws.com/tasks?taskId=${taskId}&userId=${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log(response);
+    } catch (error) {}
   };
 
-  const handleAddTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const tagInput = event.target as HTMLInputElement;
-    if (tagInput.value === null) return false;
-    if (event.key === "Enter") {
-      event.preventDefault();
-      const tag = tagInput.value;
-      setTags((prev) => {
-        const update = [...prev, tag];
-        tagInput.value = "";
-        return update;
-      });
-    } else {
-      return;
+  const handleDeleteTask = (taskId: string) => {
+    const task = tasks.find((task) => task.taskId === taskId);
+    if (task) {
+      deleteTask(task.taskId, task.userId);
+      setTasks((prevTasks) => prevTasks.filter((t) => t.taskId !== taskId));
+    }
+    setCurrentTask({
+      userId: "",
+      taskId: "",
+      title: "",
+      category: "",
+      description: "",
+      dueDate: new Date().toISOString(),
+      status: "",
+      completed: false,
+      tags: [],
+    });
+    setViewAddTask(false);
+  };
+
+  const handleSelectTask = (taskId: String) => {
+    const selectedTask = tasks.find((task) => task.taskId === taskId);
+
+    if (selectedTask) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("taskId", selectedTask.taskId);
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
+      setCurrentTask(selectedTask);
+      setViewAddTask(true);
     }
   };
 
-  const handleAddTask = () => {
-    if (refTaskCategory.current && refTaskStatus.current) {
-      const categoryOptions = refTaskCategory.current.options;
-      const statusOptions = refTaskStatus.current?.options;
-      const newTask = {
-        userId: "user-001",
-        taskId: uuidv4(),
-        title: refTaskTitle.current?.value,
-        description: refTaskDescription.current?.value,
-        category: categoryOptions[categoryOptions.selectedIndex].value,
-        status: statusOptions[statusOptions.selectedIndex].value,
-        completed: taskCompleted,
-        dueDate: refTaskDueDate.current?.value,
-        tags: tags,
-      };
-      addTask(newTask);
-    }
-  };
-
-  const resetForm = () => {
-    setTags([]);
-    setTaskCompleted(false);
+  const handleAddTask = (newTask: Task, isNewTask: boolean) => {
+    addTask(newTask, isNewTask);
   };
 
   const handleCloseAddTask = () => {
-    resetForm();
+    window.history.replaceState({}, "", `${window.location.pathname}`);
+    setCurrentTask({
+      userId: "",
+      taskId: "",
+      title: "",
+      category: "",
+      description: "",
+      dueDate: new Date().toISOString(),
+      status: "",
+      completed: false,
+      tags: [],
+    });
     setViewAddTask(false);
   };
 
   return (
     <div className="page-content">
       <div className="header">
+        <Link to="/trading">Settings</Link>
         <h1>Cloudy Tasks</h1>
       </div>
 
       <div className="search">
+        <div className="viewType">
+          <p
+            onClick={() => setCurrentView("list")}
+            className={`${currentView === "list" ? "active" : ""}`}
+          >
+            List
+          </p>
+          <p
+            onClick={() => setCurrentView("card")}
+            className={`${currentView === "card" ? "active" : ""}`}
+          >
+            Card
+          </p>
+        </div>
         <div>
           Search{" "}
           <input
@@ -196,10 +272,42 @@ function Home() {
           />
         </div>
       </div>
-      <div className="cards-grid">
-        {!viewAddTask &&
+      <div className={`cards-grid ${currentView}-view`}>
+        {currentView === "list" &&
+          stages.map((stage) => (
+            <ul>
+              <li className="stage-title">{stage}</li>
+              {stageTasks[stage].map((task: any) => (
+                <li key={task.taskId}>
+                  <div
+                    className="card"
+                    onClick={() => handleSelectTask(task.taskId)}
+                  >
+                    <div className="card-header">
+                      <p className="title">{task.title}</p>
+                    </div>
+                    {/* <p className="description">{task.description}</p>
+                    <div className="footer">
+                      <div className="category">
+                        <p>{task.category}</p>
+                      </div>
+                      <div className="tags">
+                        <p>{task?.tags.join(", ")}</p>
+                      </div>
+                    </div> */}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ))}
+
+        {currentView === "card" &&
           filteredTasks.map((task) => (
-            <div key={task.taskId} className="card">
+            <div
+              key={task.taskId}
+              className="card"
+              onClick={() => handleSelectTask(task.taskId)}
+            >
               <div className="card-header">
                 <p className="title">{task.title}</p>
                 <p className="status">{task.status}</p>
@@ -216,98 +324,18 @@ function Home() {
             </div>
           ))}
       </div>
-      {viewAddTask && (
-        <div className="add-task">
-          <section>
-            <div>
-              <label htmlFor="taskTitle">Title</label>
-              <input
-                id="taskTitle"
-                type="text"
-                ref={refTaskTitle}
-                placeholder="Title..."
-              />
-            </div>
-            <div>
-              <label htmlFor="taskCategory">Category</label>
-              <select id="taskCategory" ref={refTaskCategory}>
-                <option defaultValue="Cloud">Cloud</option>
-                <option defaultValue="Frontend">Frontend</option>
-                <option defaultValue="Backend">Backend</option>
-              </select>
-            </div>
-          </section>
-
-          <section>
-            <div>
-              <label htmlFor="taskStatus">Status</label>
-              <select id="taskStatus" ref={refTaskStatus}>
-                <option defaultValue="to-do">To Do</option>
-                <option defaultValue="in-progress">In Progress</option>
-                <option defaultValue="complete">Complete</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="taskCompleted">Completed</label>
-              True{" "}
-              <input
-                name="taskCompleted"
-                type="radio"
-                value="true"
-                checked={taskCompleted === true}
-                onChange={handleRadioChange}
-              />
-              False{" "}
-              <input
-                name="taskCompleted"
-                type="radio"
-                value="false"
-                checked={taskCompleted === false}
-                onChange={handleRadioChange}
-              />
-            </div>
-          </section>
-
-          <section>
-            <div>
-              <label htmlFor="taskDueDate">Due Date</label>
-              <input
-                id="taskDueDate"
-                type="text"
-                ref={refTaskDueDate}
-                defaultValue="2025-01-05T12:00:00Z"
-              />
-            </div>
-            <div>
-              <label htmlFor="taskTags">Tags</label>
-              <input
-                type="text"
-                onKeyDown={handleAddTag}
-                placeholder="Add Tag..."
-              />
-              <ul>
-                {tags.map((tag, index) => (
-                  <li key={index}>{tag}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
-          <section className="justify-start">
-            <div>
-              <label htmlFor="taskDescription">Description</label>
-              <textarea
-                id="taskDescription"
-                rows={7}
-                ref={refTaskDescription}
-              ></textarea>
-            </div>
-          </section>
-          <section className="cta">
-            <button onClick={handleAddTask}>Add</button>
-            <button onClick={handleCloseAddTask}>Cancel</button>
-          </section>
-        </div>
-      )}
+      <div
+        className={
+          viewAddTask ? "show edit-task-wrapper" : "hide edit-task-wrapper"
+        }
+      >
+        <EditTask
+          onClose={handleCloseAddTask}
+          onAddTask={handleAddTask}
+          onDelete={handleDeleteTask}
+          task={currentTask}
+        />
+      </div>
       <div className="bottom-section">
         {!viewAddTask && (
           <button onClick={() => setViewAddTask(true)}>
