@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-tradingbot-dev-7151c-authRole",
+      "UnauthRoleArn": "arn:aws:iam::651706758293:role/amplify-tradingbot-dev-7151c-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::651706758293:role/amplify-tradingbot-dev-7151c-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-tradingbot-dev-7151c-deployment",
+      "UnauthRoleName": "amplify-tradingbot-dev-7151c-unauthRole",
+      "StackName": "amplify-tradingbot-dev-7151c",
+      "StackId": "arn:aws:cloudformation:us-east-2:651706758293:stack/amplify-tradingbot-dev-7151c/e1352c60-08d5-11f0-b705-02378e6b1599",
+      "AmplifyAppId": "d3nsapn8z9pku5"
+    }
+  }
+}
