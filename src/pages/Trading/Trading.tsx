@@ -7,29 +7,30 @@ import "./Trading.css";
 const TradingBot = () => {
   const [price, setPrice] = useState<number | null>(null);
   const [lastBuyPrice, setLastBuyPrice] = useState<number | null>(null);
-  const [trailingStopPrice, setTrailingStopPrice] = useState<number | null>(
-    null
-  );
+  const [trailingStopPrice, setTrailingStopPrice] = useState<number | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const auth = useAuth();
   const email = auth?.user?.profile.email;
-  const { settings } = useUserSettings(email);
-
-  const [minPrice, setMinPrice] = useState(30000);
-  const [maxPrice, setMaxPrice] = useState(35000);
-  const [tradeAmount, setTradeAmount] = useState(0.01);
-  const [stopLossPercent, setStopLossPercent] = useState(5);
-  const [trailingStopPercent, setTrailingStopPercent] = useState(3);
+  const [balance, setBalance] = useState(1000);
+  const [btcBalance, setBTCBalance] = useState(0);
+  const [settings, setSettings] = useState<any>();
+  
+  const [minPrice, setMinPrice] = useState(88000);
+  const [maxPrice, setMaxPrice] = useState(99000);
+  const [profitTargetPercent, setProfitTargetPercent] = useState(1.05);
+  const [stopLossPercent, setStopLossPercent] = useState(2.5);
+  const [trailingStopPercent, setTrailingStopPercent] = useState(1.5);
 
   useEffect(() => {
     if (settings) {
       setMaxPrice(settings.maxPrice);
       setMinPrice(settings.minPrice);
-      setTradeAmount(settings.tradeAmunt);
       setStopLossPercent(settings.stopLoss);
       setTrailingStopPercent(settings.trailingStop);
+      setProfitTargetPercent(settings.profitTarget);
     }
   }, [settings]);
+
   const logMessage = (message: string) => {
     setLog((prevLog) => [...prevLog, message]);
     console.log(message);
@@ -38,35 +39,12 @@ const TradingBot = () => {
   const getPrice = async () => {
     try {
       const response = await axios.get(
-        "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
       );
-      setPrice(parseFloat(response.data.price));
+      const newPrice = parseFloat(response.data.bitcoin.usd);
+      setPrice(newPrice);
     } catch (error) {
       logMessage("Error fetching price: " + error);
-    }
-  };
-
-  const placeOrder = async (side: string) => {
-    try {
-      const orderData = {
-        symbol: "BTCUSDT",
-        side: side,
-        type: "MARKET",
-        quantity: tradeAmount,
-      };
-
-      const response = await axios.post(
-        "https://api.binance.com/api/v3/order",
-        orderData,
-        {
-          headers: { "X-MBX-APIKEY": "your_api_key" },
-        }
-      );
-
-      logMessage(`${side} order placed: ${JSON.stringify(response.data)}`);
-      return response.data.fills[0].price;
-    } catch (error) {
-      logMessage("Error placing order: " + error);
     }
   };
 
@@ -77,121 +55,55 @@ const TradingBot = () => {
 
       logMessage(`Current price: $${price}`);
 
-      if (!lastBuyPrice && price <= minPrice) {
+      // Buying logic: Buy when price hits minPrice and no BTC is held
+      if (!lastBuyPrice && price <= minPrice && balance > 0) {
         logMessage("Buying BTC...");
-        const buyPrice = await placeOrder("BUY");
-        setLastBuyPrice(buyPrice);
-        setTrailingStopPrice(buyPrice - buyPrice * (stopLossPercent / 100));
-        logMessage(
-          `Bought at $${buyPrice}, Stop-Loss set at $${
-            buyPrice - buyPrice * (stopLossPercent / 100)
-          }`
-        );
+        const btcToBuy = balance / price;
+        setBTCBalance(btcToBuy);
+        setBalance(0);
+        setLastBuyPrice(price);
+        setTrailingStopPrice(price - price * (stopLossPercent / 100));
+        logMessage(`Bought ${btcToBuy.toFixed(6)} BTC at $${price}`);
       }
 
+      // Selling logic: Sell at profit or trailing stop-loss
       if (lastBuyPrice) {
+        //const targetSellPrice = lastBuyPrice * (1 + profitTargetPercent / 100);
+        //small amount for testing
+        const targetSellPrice = lastBuyPrice + 10;
         const newStopPrice = price - price * (trailingStopPercent / 100);
-
-        if (!trailingStopPrice) {
-          console.error("Trailing stop price not set");
-          return;
-        }
-
-        if (newStopPrice > trailingStopPrice) {
+        
+        if (newStopPrice > (trailingStopPrice || 0)) {
           setTrailingStopPrice(newStopPrice);
           logMessage(`Updated trailing stop-loss to $${newStopPrice}`);
         }
 
-        if (price >= maxPrice || price <= trailingStopPrice) {
+        if (price >= targetSellPrice || price <= (trailingStopPrice || 0)) {
           logMessage("Selling BTC...");
-          await placeOrder("SELL");
+          const sellValue = btcBalance * price;
+          setBalance(sellValue);
+          setBTCBalance(0);
           setLastBuyPrice(null);
           setTrailingStopPrice(null);
-          logMessage("Trade cycle complete.");
+          logMessage(`Sold BTC for $${sellValue.toFixed(2)}`);
         }
-      } else {
-        logMessage("No trade executed.");
       }
     };
 
-    const interval = setInterval(tradeBot, 60000);
+    const interval = setInterval(tradeBot, 30000);
     return () => clearInterval(interval);
-  }, [
-    price,
-    lastBuyPrice,
-    trailingStopPrice,
-    minPrice,
-    maxPrice,
-    tradeAmount,
-    stopLossPercent,
-    trailingStopPercent,
-  ]);
+  }, [price, lastBuyPrice, trailingStopPrice, minPrice, maxPrice, stopLossPercent, trailingStopPercent, profitTargetPercent, balance, btcBalance]);
 
   return (
     <div className="trading-bot-container">
       <h1>Trading Bot</h1>
-
-      <div className="form-group">
-        <label>Min Price: </label>
-        <input
-          type="number"
-          value={minPrice}
-          onChange={(e) => setMinPrice(Number(e.target.value))}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Max Price: </label>
-        <input
-          type="number"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Trade Amount (BTC): </label>
-        <input
-          type="number"
-          value={tradeAmount}
-          onChange={(e) => setTradeAmount(Number(e.target.value))}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Stop Loss %: </label>
-        <input
-          type="number"
-          value={stopLossPercent}
-          onChange={(e) => setStopLossPercent(Number(e.target.value))}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Trailing Stop %: </label>
-        <input
-          type="number"
-          value={trailingStopPercent}
-          onChange={(e) => setTrailingStopPercent(Number(e.target.value))}
-        />
-      </div>
-
+      <p>Balance: ${balance.toFixed(2)}</p>
+      <p>BTC Holdings: {btcBalance.toFixed(6)} BTC</p>
       <p>Current Price: {price ? `$${price}` : "Fetching..."}</p>
       <p>Last Buy Price: {lastBuyPrice ? `$${lastBuyPrice}` : "N/A"}</p>
-      <p>
-        Trailing Stop Price:{" "}
-        {trailingStopPrice ? `$${trailingStopPrice}` : "N/A"}
-      </p>
-
+      <p>Trailing Stop Price: {trailingStopPrice ? `$${trailingStopPrice}` : "N/A"}</p>
       <h3>Logs:</h3>
-      <div
-        style={{
-          maxHeight: "300px",
-          overflowY: "auto",
-          border: "1px solid black",
-          padding: "10px",
-        }}
-      >
+      <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid black", padding: "10px" }}>
         {log.map((entry, index) => (
           <p key={index}>{entry}</p>
         ))}
