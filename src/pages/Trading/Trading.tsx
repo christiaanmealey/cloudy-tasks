@@ -5,8 +5,8 @@ import axios from "axios";
 import "./Trading.css";
 
 const TradingBot = () => {
-  const [price, setPrice] = useState<number | null>(null);
-  const [lastBuyPrice, setLastBuyPrice] = useState<number | null>(null);
+  const [price, setPrice] = useState<number>(0);
+  const [lastBuyPrice, setLastBuyPrice] = useState<number>(0);
   const [trailingStopPrice, setTrailingStopPrice] = useState<number | null>(null);
   const [log, setLog] = useState<string[]>([]);
   // const auth = useAuth();
@@ -18,10 +18,12 @@ const TradingBot = () => {
   
   const [minPrice, setMinPrice] = useState(88000);
   const [maxPrice, setMaxPrice] = useState(99000);
+  const [runningLowPrice, setRunningLowPrice] = useState(0);
   const [profitTargetPercent, setProfitTargetPercent] = useState(1.05);
   const [stopLossPercent, setStopLossPercent] = useState(2.5);
   const [trailingStopPercent, setTrailingStopPercent] = useState(1.5);
   const [totalProfit, setTotalProfit] = useState(0);
+  const [priceClass, setPriceClass] = useState("");
 
   useEffect(() => {
     if (settings) {
@@ -52,8 +54,22 @@ const TradingBot = () => {
       const response = await axios.get(
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
       );
+
+      // update price
+      const prevPrice = price;
       const newPrice = parseFloat(response.data.bitcoin.usd);
+      
+      if (prevPrice !== null) {
+        setPriceClass(newPrice > prevPrice ? "up" : "down");
+        console.log('setting price class', priceClass);
+        setTimeout(() => setPriceClass(""), 500); // Reset class after animation
+      }
       setPrice(newPrice);
+      if(runningLowPrice === 0) {
+        setRunningLowPrice(newPrice);
+      } else if(runningLowPrice > newPrice) {
+        setRunningLowPrice(newPrice);
+      }
     } catch (error) {
       logMessage("Error fetching price: " + error);
     }
@@ -96,7 +112,7 @@ const TradingBot = () => {
           const sellValue = btcBalance * price;
           setBalance(sellValue);
           setBTCBalance(0);
-          setLastBuyPrice(null);
+          setLastBuyPrice(0);
           setTrailingStopPrice(null);
           logMessage(`Sold BTC for $${sellValue.toFixed(2)}`);
         }
@@ -110,12 +126,13 @@ const TradingBot = () => {
   return (
     <div className="trading-bot-container">
       <h1>Trading Bot</h1>
-      <p>Total Profit: ${totalProfit.toFixed(2)}</p>
-      <p>Balance: ${balance.toFixed(2)}</p>
+      <p>Total Profit: ${totalProfit.toFixed(2).toLocaleString()}</p>
+      <p>Balance: ${balance.toFixed(2).toLocaleString()}</p>
       <p>BTC Holdings: {btcBalance.toFixed(6)} BTC</p>
-      <p>Current Price: {price ? `$${price}` : "Fetching..."}</p>
-      <p>Last Buy Price: {lastBuyPrice ? `$${lastBuyPrice}` : "N/A"}</p>
-      <p>Trailing Stop Price: {trailingStopPrice ? `$${trailingStopPrice}` : "N/A"}</p>
+      <p>Current Price: <span className={`price ${priceClass}`}>{price ? `$${price.toLocaleString()}` : "Fetching..."}</span></p>
+      <p>Last Buy Price: <span className={price < lastBuyPrice ? 'down' : 'up'}>{lastBuyPrice ? `$${lastBuyPrice.toLocaleString()}` : "N/A"}</span></p>
+      <p>Trailing Stop Price: {trailingStopPrice ? `$${trailingStopPrice.toLocaleString()}` : "N/A"}</p>
+      <p>Running Low Price: ${runningLowPrice.toLocaleString()}</p>
       <h3>Logs:</h3>
       <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid black", padding: "10px" }}>
         {log.map((entry, index) => (
