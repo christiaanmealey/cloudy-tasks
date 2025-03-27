@@ -11,7 +11,8 @@ const TradingBot = () => {
   const [log, setLog] = useState<string[]>([]);
   // const auth = useAuth();
   // const email = auth?.user?.profile.email;
-  const [balance, setBalance] = useState(1000);
+  const startingBalance = 10000;
+  const [balance, setBalance] = useState(startingBalance);
   const [btcBalance, setBTCBalance] = useState(0);
   const [settings, setSettings] = useState<any>();
   
@@ -20,6 +21,7 @@ const TradingBot = () => {
   const [profitTargetPercent, setProfitTargetPercent] = useState(1.05);
   const [stopLossPercent, setStopLossPercent] = useState(2.5);
   const [trailingStopPercent, setTrailingStopPercent] = useState(1.5);
+  const [totalProfit, setTotalProfit] = useState(0);
 
   useEffect(() => {
     if (settings) {
@@ -55,13 +57,15 @@ const TradingBot = () => {
     } catch (error) {
       logMessage("Error fetching price: " + error);
     }
-    setTimeout(() => getPrice(), 30000);
+    setTimeout(() => getPrice(), 20000);
   };
 
   useEffect(() => {
     const tradeBot = async () => {
       if (!price) return;
-
+      if(lastBuyPrice) {
+        setTotalProfit((btcBalance*lastBuyPrice) - startingBalance);
+      }
       logMessage(`Current price: $${price}`);
       console.log(!lastBuyPrice, price, minPrice, balance);
       // Buying logic: Buy when price hits minPrice and no BTC is held
@@ -106,6 +110,7 @@ const TradingBot = () => {
   return (
     <div className="trading-bot-container">
       <h1>Trading Bot</h1>
+      <p>Total Profit: ${totalProfit.toFixed(2)}</p>
       <p>Balance: ${balance.toFixed(2)}</p>
       <p>BTC Holdings: {btcBalance.toFixed(6)} BTC</p>
       <p>Current Price: {price ? `$${price}` : "Fetching..."}</p>
