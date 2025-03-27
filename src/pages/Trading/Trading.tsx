@@ -13,23 +13,25 @@ const TradingBot = () => {
   // const email = auth?.user?.profile.email;
   const [balance, setBalance] = useState(1000);
   const [btcBalance, setBTCBalance] = useState(0);
-  // const [settings, setSettings] = useState<any>();
+  const [settings, setSettings] = useState<any>();
   
-  // const [minPrice, setMinPrice] = useState(88000);
-  // const [maxPrice, setMaxPrice] = useState(99000);
-  // const [profitTargetPercent, setProfitTargetPercent] = useState(1.05);
-  // const [stopLossPercent, setStopLossPercent] = useState(2.5);
-  // const [trailingStopPercent, setTrailingStopPercent] = useState(1.5);
+  const [minPrice, setMinPrice] = useState(88000);
+  const [maxPrice, setMaxPrice] = useState(99000);
+  const [profitTargetPercent, setProfitTargetPercent] = useState(1.05);
+  const [stopLossPercent, setStopLossPercent] = useState(2.5);
+  const [trailingStopPercent, setTrailingStopPercent] = useState(1.5);
 
-  // useEffect(() => {
-  //   if (settings) {
-  //     setMaxPrice(settings.maxPrice);
-  //     setMinPrice(settings.minPrice);
-  //     setStopLossPercent(settings.stopLoss);
-  //     setTrailingStopPercent(settings.trailingStop);
-  //     setProfitTargetPercent(settings.profitTarget);
-  //   }
-  // }, [settings]);
+  useEffect(() => {
+    if (settings) {
+      setMaxPrice(settings.maxPrice);
+      setMinPrice(settings.minPrice);
+      setStopLossPercent(settings.stopLoss);
+      setTrailingStopPercent(settings.trailingStop);
+      setProfitTargetPercent(settings.profitTarget);
+    } else {
+      setSettings({});
+    }
+  }, [settings]);
 
   const logMessage = (message: string) => {
     setLog((prevLog) => [...prevLog, message]);
