@@ -25,13 +25,19 @@ const TradingBot = () => {
     if (settings) {
       setMaxPrice(settings.maxPrice);
       setMinPrice(settings.minPrice);
-      setStopLossPercent(settings.stopLoss);
-      setTrailingStopPercent(settings.trailingStop);
-      setProfitTargetPercent(settings.profitTarget);
+      setStopLossPercent(settings.stopLossPercent);
+      setTrailingStopPercent(settings.trailingStopPercent);
+      setProfitTargetPercent(settings.profitTargetPercent);
     } else {
-      setSettings({});
+      setSettings({maxPrice, minPrice, profitTargetPercent, stopLossPercent, trailingStopPercent});
     }
   }, [settings]);
+
+  useEffect(() => {
+    if(!price) {
+      getPrice();
+    }
+  }, []);
 
   const logMessage = (message: string) => {
     setLog((prevLog) => [...prevLog, message]);
@@ -39,6 +45,7 @@ const TradingBot = () => {
   };
 
   const getPrice = async () => {
+    console.log('fetching price');
     try {
       const response = await axios.get(
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
@@ -48,15 +55,15 @@ const TradingBot = () => {
     } catch (error) {
       logMessage("Error fetching price: " + error);
     }
+    setTimeout(() => getPrice(), 30000);
   };
 
   useEffect(() => {
     const tradeBot = async () => {
-      await getPrice();
       if (!price) return;
 
       logMessage(`Current price: $${price}`);
-
+      console.log(!lastBuyPrice, price, minPrice, balance);
       // Buying logic: Buy when price hits minPrice and no BTC is held
       if (!lastBuyPrice && price <= minPrice && balance > 0) {
         logMessage("Buying BTC...");
@@ -92,7 +99,7 @@ const TradingBot = () => {
       }
     };
 
-    const interval = setInterval(tradeBot, 30000);
+    const interval = setInterval(tradeBot, 10000);
     return () => clearInterval(interval);
   }, [price, lastBuyPrice, trailingStopPrice, minPrice, maxPrice, stopLossPercent, trailingStopPercent, profitTargetPercent, balance, btcBalance]);
 
